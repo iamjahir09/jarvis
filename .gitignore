@@ -1,0 +1,83 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node/npm
+node_modules/
+npm-debug.log*
+
+# Build/compiled files
+*.mo
+*.egg-info/
+dist/
+build/
+*.manifest
+*.spec
+
+# Database migrations (except init)
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# API keys and secrets
+secrets.json
+config.json
+credentials.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# PyAudio cache
+*.wav
+*.mp3
+temp_audio/
+
+# Python
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Package management
+*.egg
+*.eggs
+
+# Logs
+logs/
+*.log
+
+# Windows
+[Tt]humbs.db
+ehthumbs*.db
+[Dd]esktop.ini

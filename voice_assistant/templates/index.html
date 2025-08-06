@@ -1,0 +1,393 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>JARVIS Video Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* Hide all scrollbars */
+        ::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        
+        #video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        
+        .jarvis-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 900px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+        }
+        
+        .command-display {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        .command-display::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        
+        /* Rest of your existing CSS remains the same */
+        @keyframes containerGlow {
+            0% { 
+                box-shadow: 
+                    0 0 50px rgba(0, 168, 255, 0.3),
+                    inset 0 0 50px rgba(0, 168, 255, 0.1);
+            }
+            100% { 
+                box-shadow: 
+                    0 0 80px rgba(0, 168, 255, 0.5),
+                    inset 0 0 80px rgba(0, 168, 255, 0.2);
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .title {
+            color: #00a8ff;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 
+                0 0 10px rgba(0, 168, 255, 0.8),
+                0 0 20px rgba(0, 168, 255, 0.6),
+                0 0 30px rgba(0, 168, 255, 0.4);
+            letter-spacing: 2px;
+            animation: titlePulse 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titlePulse {
+            0% { 
+                text-shadow: 
+                    0 0 10px rgba(0, 168, 255, 0.8),
+                    0 0 20px rgba(0, 168, 255, 0.6),
+                    0 0 30px rgba(0, 168, 255, 0.4);
+            }
+            100% { 
+                text-shadow: 
+                    0 0 15px rgba(0, 168, 255, 1),
+                    0 0 25px rgba(0, 168, 255, 0.8),
+                    0 0 35px rgba(0, 168, 255, 0.6);
+            }
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .pulse-dot {
+            width: 12px;
+            height: 12px;
+            background: #ff4757;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .pulse-dot.active {
+            background: #2ed573;
+            animation: pulse-active 0.8s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes pulse-active {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        #status-text {
+            color: #00a8ff;
+            font-weight: 500;
+            text-shadow: 0 0 8px rgba(0, 168, 255, 0.8);
+            letter-spacing: 1px;
+        }
+        
+        .command-line {
+            color: #00ff41;
+            margin-bottom: 8px;
+            text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+            padding: 5px 0;
+            border-left: 3px solid #00ff41;
+            padding-left: 10px;
+        }
+        
+        .response-line {
+            color: #00a8ff;
+            margin-bottom: 8px;
+            text-shadow: 0 0 8px rgba(0, 168, 255, 0.6);
+            padding: 5px 0;
+            border-left: 3px solid #00a8ff;
+            padding-left: 10px;
+        }
+        
+        .error-line {
+            color: #ff4757;
+            margin-bottom: 8px;
+            text-shadow: 0 0 8px rgba(255, 71, 87, 0.6);
+            padding: 5px 0;
+            border-left: 3px solid #ff4757;
+            padding-left: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .control-btn {
+            padding: 15px 30px;
+            background: linear-gradient(145deg, rgba(0, 168, 255, 0.2) 0%, rgba(0, 168, 255, 0.1) 50%, rgba(0, 168, 255, 0.2) 100%);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 168, 255, 0.6);
+            color: #00a8ff;
+            cursor: pointer;
+            border-radius: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 0 5px rgba(0, 168, 255, 0.8);
+        }
+        
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 168, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+        
+        .control-btn:hover::before {
+            left: 100%;
+        }
+        
+        .control-btn:hover {
+            background: linear-gradient(145deg, rgba(0, 168, 255, 0.4) 0%, rgba(0, 168, 255, 0.2) 50%, rgba(0, 168, 255, 0.4) 100%);
+            box-shadow: 
+                0 0 25px rgba(0, 168, 255, 0.6),
+                inset 0 0 15px rgba(0, 168, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .control-btn:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 0 15px rgba(0, 168, 255, 0.4),
+                inset 0 0 10px rgba(0, 168, 255, 0.3);
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .control-btn i {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Video Background -->
+    <video id="video-background" autoplay muted loop>
+        <source src="static/images/JARVIS.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+    
+    <!-- JARVIS Interface -->
+    <div class="jarvis-container">
+        {% comment %} <div class="header">
+            <div class="title">J.A.R.V.I.S. VIDEO INTERFACE</div>
+            <div class="status-indicator">
+                <div class="pulse-dot" id="status-dot"></div>
+                <span id="status-text">SYSTEM READY</span>
+            </div>
+        </div> {% endcomment %}
+        
+        <div class="command-display" id="command-log">
+            {% comment %} <div class="command-line">Initializing video interface...</div>
+            <div class="response-line">Video feed stabilized</div>
+            <div class="command-line">Audio systems online</div>
+            <div class="response-line">Awaiting voice commands</div> {% endcomment %}
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" id="start-btn">
+                <i class="fas fa-microphone"></i> ACTIVATE
+            </button>
+            <button class="control-btn" id="stop-btn" disabled>
+                <i class="fas fa-microphone-slash"></i> DEACTIVATE
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Voice recognition elements
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const commandLog = document.getElementById('command-log');
+
+        let recognition;
+        
+        try {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.continuous = true;
+
+            startBtn.addEventListener('click', () => {
+                recognition.start();
+                statusDot.classList.add('active');
+                statusText.textContent = 'LISTENING';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                addToLog('Voice recognition activated', 'system');
+                addToLog('Awaiting vocal input...', 'jarvis');
+            });
+
+            stopBtn.addEventListener('click', () => {
+                recognition.stop();
+                statusDot.classList.remove('active');
+                statusText.textContent = 'STANDBY';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                addToLog('Voice recognition deactivated', 'system');
+            });
+
+            recognition.onresult = (event) => {
+                const command = event.results[event.results.length - 1][0].transcript;
+                addToLog(command, 'user');
+                
+                fetch('/process-voice/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ command: command })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    addToLog(data.response, 'jarvis');
+                });
+            };
+
+            recognition.onerror = (event) => {
+                addToLog(`Error: ${event.error}`, 'error');
+                statusDot.classList.remove('active');
+                statusText.textContent = 'ERROR';
+                stopBtn.disabled = true;
+                startBtn.disabled = false;
+            };
+
+            recognition.onend = () => {
+                if (startBtn.disabled) {
+                    recognition.start();
+                } else {
+                    statusDot.classList.remove('active');
+                    statusText.textContent = 'STANDBY';
+                }
+            };
+
+            function addToLog(text, type) {
+                const line = document.createElement('div');
+                line.className = type === 'user' ? 'command-line' : 
+                                type === 'jarvis' ? 'response-line' : 
+                                type === 'system' ? 'response-line' :
+                                'error-line';
+                line.textContent = text;
+                commandLog.appendChild(line);
+                commandLog.scrollTop = commandLog.scrollHeight;
+                
+                // Typing effect
+                const originalText = text;
+                line.textContent = '';
+                let i = 0;
+                const typing = setInterval(() => {
+                    if (i < originalText.length) {
+                        line.textContent += originalText.charAt(i);
+                        i++;
+                    } else {
+                        clearInterval(typing);
+                    }
+                }, 30);
+            }
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+        } catch (e) {
+            console.error('Speech recognition not supported', e);
+            statusText.textContent = 'API UNAVAILABLE';
+            startBtn.disabled = true;
+            addToLog('Error: Speech recognition not supported in this browser', 'error');
+        }
+        
+        // Auto-play video
+        document.getElementById('video-background').play().catch(e => {
+            console.log("Autoplay prevented, showing controls");
+            document.getElementById('video-background').controls = true;
+        });
+    </script>
+</body>
+</html>

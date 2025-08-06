@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container">
+    <h1>Automotive AI Voice Assistant</h1>
+    
+    <div class="assistant-container">
+        <button id="micButton" class="mic-button">
+            <img src="{% static 'images/mic.png' %}" alt="Mic" id="micIcon">
+        </button>
+        <div id="status" class="status">Click the mic and speak</div>
+        <div id="commandResult" class="command-result"></div>
+    </div>
+    
+    <div class="command-history">
+        <h2>Command History</h2>
+        <div id="historyList"></div>
+    </div>
+</div>
+{% endblock %}
